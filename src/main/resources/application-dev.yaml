@@ -1,0 +1,15 @@
+server.port: ${port:8000}
+
+spring:
+  datasource:
+    url: jdbc:mysql://10.0.0.154:3306/produce_yysports_business?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&preferredTestQuery=select now()
+    driver-class-name: com.mysql.jdbc.Driver
+    username: produce
+    password: produce123
+  jpa:
+    show-sql: true
+    properties.hibernate.dialect: org.hibernate.dialect.MySQL5Dialect
+logging:
+  level: debug
+  file: D:/logs/itemservice.log
+

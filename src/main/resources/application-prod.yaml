@@ -1,0 +1,14 @@
+server.port: ${port:8000}
+
+spring:
+  datasource:
+    url: ${dburl}
+    driver-class-name: com.mysql.jdbc.Driver
+    username: ${dbusername}
+    password: ${dbpassword}
+  jpa:
+    show-sql: false
+    properties.hibernate.dialect: org.hibernate.dialect.MySQL5Dialect
+logging:
+  level: info
+  file: /logs/itemservice.log
