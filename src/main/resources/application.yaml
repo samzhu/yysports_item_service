@@ -1,6 +1,6 @@
 spring:
   application.name: ItemServiceV1
-  profiles.active: prod
+  profiles.active: dev
   jackson:
     dateFormat: com.fasterxml.jackson.databind.util.ISO8601DateFormat
     time-zone: UTC

@@ -4,6 +4,7 @@ import com.yysports.domain.Item;
 import com.yysports.dto.ItemReportDto;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
