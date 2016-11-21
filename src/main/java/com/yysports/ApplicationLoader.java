@@ -48,6 +48,9 @@ public class ApplicationLoader implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
+
+        //QItem QItem = QItem.item;
+
         TypedQuery<ItemReportDto> typedQuery = entityManager.createQuery(sql + " and shopref.shopId=1024612", ItemReportDto.class);
         //typedQuery.setParameter("","");
         List<ItemReportDto> itemReportlist = typedQuery.getResultList();
