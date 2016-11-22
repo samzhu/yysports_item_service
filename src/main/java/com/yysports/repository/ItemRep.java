@@ -33,6 +33,6 @@ public interface ItemRep extends PagingAndSortingRepository<Item, Long>{
 
     List<Item> findByItemGroupIdIn(List<Long> itemGroupIDs);
 
-    @Query(value = findAllItemReportSQL)
-    List<ItemReportDto> findAllItemReport();
+    //@Query(value = findAllItemReportSQL)
+    //List<ItemReportDto> findAllItemReport();
 }

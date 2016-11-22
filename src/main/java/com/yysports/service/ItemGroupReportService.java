@@ -7,14 +7,20 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import org.hibernate.SQLQuery;
+import org.hibernate.transform.Transformers;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by samchu on 2016/11/16.
@@ -22,64 +28,81 @@ import java.util.List;
 @Slf4j
 @Service
 public class ItemGroupReportService {
-    private String itemGroupReportSQL = "select " +
-            " new com.yysports.dto.ItemReportDto(igroup.brand, igroup.isSpecial," +
-            " CASE igroup.isSpecial WHEN 0 THEN '普通商品' WHEN 1 THEN '特卖商品' WHEN 2 THEN '员购商品' WHEN 3 THEN '半马商品' ELSE '' END ," +
-            " igroup.id," +
-            " igroup.itemGroupName," +
-            " item.id," +
-            " item.itemName," +
-            " item.upcCode," +
-            " item.erpCode," +
-            " item.integral," +
-            " stock.stock," +
-            " item.listPrice," +
-            " item.yyPrice ) " +
-            " from Item as item, ItemGroup as igroup, ItemStock as stock, ItemGroupShopRef as shopref " +
-            " where item.itemGroupId = igroup.id and item.id = stock.itemId and igroup.id = shopref.itemGroupId " +
-            " and item.isDel=0 and igroup.isDel=0 and stock.isDel=0 ";
+    private String itemGroupReportSQL = "select itemgroup.* from (select igroup.brand brandName, igroup.IS_SPECIAL isSpecial," +
+            " CASE igroup.IS_SPECIAL WHEN 0 THEN '普通商品' WHEN 1 THEN '特卖商品' WHEN 2 THEN '员购商品' WHEN 3 THEN '半马商品' ELSE '' END isSpecialStr," +
+            " igroup.id itemGroupID," +
+            " igroup.ITEM_GROUP_NAME itemGroupName," +
+            " item.id itemID," +
+            " item.ITEM_NAME itemName," +
+            " item.UPC_CODE upcCode," +
+            " item.ERP_CODE erpCode," +
+            " item.integral integral," +
+            " stock.stock stock," +
+            " item.LIST_PRICE listPrice," +
+            " item.YY_PRICE yyPrice" +
+            " from item as item, item_group as igroup, item_stock as stock " +
+            " where item.ITEM_GROUP_ID = igroup.id and item.id = stock.ITEM_ID " +
+            " and item.IS_DEL=0 and igroup.IS_DEL=0 and stock.IS_DEL=0 ) as itemgroup " +
+            " LEFT JOIN item_group_shop_ref as shopref" +
+            " ON itemGroupID = shopref.ITEM_GROUP_ID where shopref.IS_DEL=0 ";
 
     @Autowired
     private EntityManager entityManager;
 
-    public ByteArrayOutputStream genExcel(Long id, String itemGroupName, List<Long> shopIdPmt,String brand, Integer isSpecial) throws Exception {
+    @Autowired
+    private ModelMapper modelMapper;
+
+    public ByteArrayOutputStream genExcel(Long id, String itemGroupName, List<Long> shopIdPmt, String brand, Integer isSpecial) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         StringBuilder sb = new StringBuilder(itemGroupReportSQL);
         if (id != null) {
-            sb.append(" and igroup.id = :id");
+            sb.append(" and itemgroup.itemGroupID = :itemGroupID");
         }
         if (StringUtils.hasText(itemGroupName)) {
-            sb.append(" and igroup.itemGroupName like :itemGroupName");
+            sb.append(" and itemgroup.itemGroupName like :itemGroupName");
         }
-        if(shopIdPmt != null){
-            sb.append(" and shopref.shopId in :shopIdPmt");
+        if (shopIdPmt != null) {
+            sb.append(" and shopref.SHOP_ID in :shopIdPmt");
         }
         if (StringUtils.hasText(brand)) {
-            sb.append(" and igroup.brand like :brand");
+            sb.append(" and itemgroup.brandName like :brandName");
         }
         if (isSpecial != null) {
-            sb.append(" and igroup.isSpecial = :isSpecial");
+            sb.append(" and itemgroup.isSpecial = :isSpecial");
         }
-        sb.append(" order by igroup.id desc");
+        sb.append(" order by itemGroupID desc");
+        List<ItemReportDto> itemReportlist = new ArrayList();
         try {
-            TypedQuery<ItemReportDto> typedQuery = entityManager.createQuery(sb.toString(), ItemReportDto.class);
+            Query query = entityManager.createNativeQuery(sb.toString());
             if (id != null) {
-                typedQuery.setParameter("id", id);
+                query.setParameter("itemGroupID", id);
             }
             if (StringUtils.hasText(itemGroupName)) {
-                typedQuery.setParameter("itemGroupName", "%" + itemGroupName + "%");
+                query.setParameter("itemGroupName", "%" + itemGroupName + "%");
             }
-            if(shopIdPmt != null){
-                typedQuery.setParameter("shopIdPmt", shopIdPmt);
+            if (shopIdPmt != null) {
+                query.setParameter("shopIdPmt", shopIdPmt);
             }
             if (StringUtils.hasText(brand)) {
-                typedQuery.setParameter("brand", "%" + brand + "%");
+                query.setParameter("brandName", "%" + brand + "%");
             }
             if (isSpecial != null) {
-                typedQuery.setParameter("isSpecial", isSpecial);
+                query.setParameter("isSpecial", isSpecial);
             }
-            List<ItemReportDto> itemReportlist = typedQuery.getResultList();
-            System.out.println("get:" + itemReportlist.size());
+            query.unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+            List<Map<String, Object>> list = query.getResultList();
+            for (Map<String, Object> map : list) {
+                ItemReportDto dto = modelMapper.map(map, ItemReportDto.class);
+                itemReportlist.add(dto);
+            }
+
+//
+//            List<ItemReportDto> itemReportlist = typedQuery.getResultList();
+//            System.out.println("get:" + itemReportlist.size());
+//            for (ItemReportDto dto : itemReportlist) {
+//                System.out.println("dto:" + dto);
+//            }
+
             JasperReport jasperReport = JasperCompileManager.compileReport(
                     Thread.currentThread().getContextClassLoader().getResourceAsStream("report/ItemReport.jrxml"));
             JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(itemReportlist);

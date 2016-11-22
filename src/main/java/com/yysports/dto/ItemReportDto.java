@@ -13,8 +13,8 @@ import java.math.BigDecimal;
 /**
  * Created by samchu on 2016/11/14.
  */
+
 @Data
-@AllArgsConstructor
 public class ItemReportDto {
     // 品牌名稱
     private String brandName;
@@ -41,4 +41,6 @@ public class ItemReportDto {
     private BigDecimal listPrice;
     // 勝道價
     private BigDecimal yyPrice;
+
+
 }

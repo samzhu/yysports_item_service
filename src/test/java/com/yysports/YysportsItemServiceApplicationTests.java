@@ -12,7 +12,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,14 +27,17 @@ public class YysportsItemServiceApplicationTests {
 
     @Test
     public void testItemGroupReport() throws Exception {
-        ResponseEntity<byte[]> response = this.restTemplate.getForEntity("/api/v1/ItemGroupReport?id={id}", byte[].class, "11");
+        ResponseEntity<byte[]> response = this.restTemplate.getForEntity(
+                "/api/v1/ItemGroupReport?id={id}&itemGroupName={itemGroupName}&shopIdPmt={shopIdPmt}&brand={brand}&isSpecial={isSpecial}", byte[].class,
+                "1", "itemGroupName", "1", "brand", "1");
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         //assertThat(entity.getBody()).isEqualTo("Hello, world");
     }
 
     @Test
     public void testItemReport() throws Exception {
-        ResponseEntity<String> entity = this.restTemplate.getForEntity("/api/v1/ItemReport", String.class);
+        ResponseEntity<byte[]> entity = this.restTemplate.getForEntity(
+                "/api/v1/ItemReport?id=1&upcCode=1&itemName=1&type=1&itemGroupName=1", byte[].class);
         assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 }

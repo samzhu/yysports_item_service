@@ -1,5 +1,6 @@
 package com.yysports.domain;
 
+import com.yysports.dto.ItemReportDto;
 import lombok.Data;
 
 import javax.persistence.*;

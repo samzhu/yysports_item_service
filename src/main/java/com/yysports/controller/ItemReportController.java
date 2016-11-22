@@ -47,7 +47,7 @@ public class ItemReportController {
             @RequestParam(name = "itemName", required = false) String itemName,
             @RequestParam(name = "type", required = false) String type,
             @RequestParam(name = "itemGroupName", required = false) String itemGroupName) throws Exception {
-        log.debug("接收查詢 id={}, upcCode={}, itemName={},type={}, itemGroupName={}", id, upcCode, itemName, type, itemGroupName);
+        log.info("接收查詢 id={}, upcCode={}, itemName={},type={}, itemGroupName={}", id, upcCode, itemName, type, itemGroupName);
         ByteArrayOutputStream baos = itemReportService.genExcel(id, upcCode, itemName, type, itemGroupName);
         return ResponseEntity
                 .ok()
