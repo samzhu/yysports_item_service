@@ -42,8 +42,8 @@ public class ItemGroupReportService {
             " item.YY_PRICE yyPrice" +
             " from item as item, item_group as igroup, item_stock as stock " +
             " where item.ITEM_GROUP_ID = igroup.id and item.id = stock.ITEM_ID " +
-            " and item.IS_DEL=0 and igroup.IS_DEL=0 and stock.IS_DEL=0 ) as itemgroup " +
-            " LEFT JOIN (SELECT * FROM item_group_shop_ref WHERE IS_DEL=0) AS shop ON itemgroup.itemGroupID=shop.ITEM_GROUP_ID ";
+            " and item.IS_DEL=0 and igroup.IS_DEL=0 and stock.IS_DEL=0 ) as itemgroup ";
+            //" LEFT JOIN (SELECT * FROM item_group_shop_ref WHERE IS_DEL=0) AS shop ON itemgroup.itemGroupID=shop.ITEM_GROUP_ID ";
 
 
     @Autowired
@@ -62,7 +62,9 @@ public class ItemGroupReportService {
             sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.itemGroupName like :itemGroupName");
         }
         if (shopIdPmt != null) {
-            sb.append((sb.length() > 0 ? " and " : "") + " shop.SHOP_ID in :shopIdPmt");
+            //and itemGroupID in (select ITEM_GROUP_ID from item_group_shop_ref where SHOP_ID in (1818))
+            //sb.append((sb.length() > 0 ? " and " : "") + " shop.SHOP_ID in :shopIdPmt");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.itemGroupID in (select ITEM_GROUP_ID from item_group_shop_ref where SHOP_ID in :shopIdPmt)");
         }
         if (StringUtils.hasText(brand)) {
             sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.brandName like :brandName");
