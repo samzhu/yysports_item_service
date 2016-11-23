@@ -44,9 +44,7 @@ public class ItemReportService {
             " item.TYPE type" +
             " from item as item, item_group as igroup, item_stock as stock " +
             " where item.ITEM_GROUP_ID = igroup.id and item.id = stock.ITEM_ID " +
-            " and item.IS_DEL=0 and igroup.IS_DEL=0 and stock.IS_DEL=0 ) as itemgroup " +
-            " LEFT JOIN item_group_shop_ref as shopref" +
-            " ON itemGroupID = shopref.ITEM_GROUP_ID where shopref.IS_DEL=0 ";
+            " and item.IS_DEL=0 and igroup.IS_DEL=0 and stock.IS_DEL=0 ) as itemgroup ";
 
     @Autowired
     private EntityManager entityManager;
@@ -56,28 +54,30 @@ public class ItemReportService {
 
     public ByteArrayOutputStream genExcel(Long id, String upcCode, String itemName, String type, String itemGroupName) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        StringBuilder sb = new StringBuilder(itemReportSQL);
+        StringBuilder sb = new StringBuilder();
         if (id != null) {
-            sb.append(" and itemgroup.itemGroupID = :itemGroupID");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.itemID = :itemID");
         }
         if (StringUtils.hasText(upcCode)) {
-            sb.append(" and itemgroup.upcCode like :upcCode");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.upcCode like :upcCode");
         }
         if (StringUtils.hasText(itemName)) {
-            sb.append(" and itemgroup.itemName like :itemName");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.itemName like :itemName");
         }
         if (StringUtils.hasText(type)) {
-            sb.append(" and itemgroup.type = :type");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.type = :type");
         }
         if (StringUtils.hasText(itemGroupName)) {
-            sb.append(" and itemgroup.itemGroupName like :itemGroupName");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.itemGroupName like :itemGroupName");
         }
-        sb.append(" order by itemGroupID desc");
+        if (sb.length() > 0) sb.insert(0, " where ");
+        sb.insert(0, itemReportSQL);
+        sb.append(" order by itemID desc");
         List<ItemReportDto> itemReportlist = new ArrayList();
         try {
             Query query = entityManager.createNativeQuery(sb.toString());
             if (id != null) {
-                query.setParameter("itemGroupID", id);
+                query.setParameter("itemID", id);
             }
             if (StringUtils.hasText(upcCode)) {
                 query.setParameter("upcCode", "%" + upcCode + "%");

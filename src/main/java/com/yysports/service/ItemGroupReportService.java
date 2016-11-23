@@ -43,8 +43,8 @@ public class ItemGroupReportService {
             " from item as item, item_group as igroup, item_stock as stock " +
             " where item.ITEM_GROUP_ID = igroup.id and item.id = stock.ITEM_ID " +
             " and item.IS_DEL=0 and igroup.IS_DEL=0 and stock.IS_DEL=0 ) as itemgroup " +
-            " LEFT JOIN item_group_shop_ref as shopref" +
-            " ON itemGroupID = shopref.ITEM_GROUP_ID where shopref.IS_DEL=0 ";
+            " LEFT JOIN (SELECT * FROM item_group_shop_ref WHERE IS_DEL=0) AS shop ON itemgroup.itemGroupID=shop.ITEM_GROUP_ID ";
+
 
     @Autowired
     private EntityManager entityManager;
@@ -54,22 +54,24 @@ public class ItemGroupReportService {
 
     public ByteArrayOutputStream genExcel(Long id, String itemGroupName, List<Long> shopIdPmt, String brand, Integer isSpecial) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        StringBuilder sb = new StringBuilder(itemGroupReportSQL);
+        StringBuilder sb = new StringBuilder();
         if (id != null) {
-            sb.append(" and itemgroup.itemGroupID = :itemGroupID");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.itemGroupID = :itemGroupID");
         }
         if (StringUtils.hasText(itemGroupName)) {
-            sb.append(" and itemgroup.itemGroupName like :itemGroupName");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.itemGroupName like :itemGroupName");
         }
         if (shopIdPmt != null) {
-            sb.append(" and shopref.SHOP_ID in :shopIdPmt");
+            sb.append((sb.length() > 0 ? " and " : "") + " shop.SHOP_ID in :shopIdPmt");
         }
         if (StringUtils.hasText(brand)) {
-            sb.append(" and itemgroup.brandName like :brandName");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.brandName like :brandName");
         }
         if (isSpecial != null) {
-            sb.append(" and itemgroup.isSpecial = :isSpecial");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.isSpecial = :isSpecial");
         }
+        if (sb.length() > 0) sb.insert(0, " where ");
+        sb.insert(0, itemGroupReportSQL);
         sb.append(" order by itemGroupID desc");
         List<ItemReportDto> itemReportlist = new ArrayList();
         try {

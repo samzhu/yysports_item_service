@@ -2,10 +2,10 @@ server.port: ${port:8000}
 
 spring:
   datasource:
-    url: ${dburl:jdbc:mysql://10.0.0.154:3306/produce_yysports_business?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&preferredTestQuery=select now()}
+    url: ${dburl:jdbc:mysql://10.0.0.162:3306/yysports_dev_163?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&preferredTestQuery=select now()}
     driver-class-name: com.mysql.jdbc.Driver
-    username: ${dbusername:produce}
-    password: ${dbpassword:produce123}
+    username: ${dbusername:mysql162}
+    password: ${dbpassword:!QAZ2wsx}
   jpa:
     show-sql: true
     properties.hibernate.dialect: org.hibernate.dialect.MySQL5Dialect
