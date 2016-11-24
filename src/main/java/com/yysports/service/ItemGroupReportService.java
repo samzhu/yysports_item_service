@@ -61,7 +61,7 @@ public class ItemGroupReportService {
             "IS_SPECIAL isSpecial, \n" +
             "CASE IS_SPECIAL WHEN 0 THEN '普通商品' WHEN 1 THEN '特卖商品' WHEN 2 THEN '员购商品' WHEN 3 THEN '半马商品' ELSE '' END isSpecialStr, \n" +
             "id groupid, \n" +
-            "ITEM_GROUP_NAME itemGroupName FROM item_group WHERE IS_DEL=0) AS tgroup ON titem.itemGroupID = tgroup.groupid ";
+            "ITEM_GROUP_NAME itemGroupName FROM item_group ) AS tgroup ON titem.itemGroupID = tgroup.groupid ";
 
     @Autowired
     private EntityManager entityManager;
