@@ -28,23 +28,40 @@ import java.util.Map;
 @Slf4j
 @Service
 public class ItemGroupReportService {
-    private String itemGroupReportSQL = "select itemgroup.* from (select igroup.brand brandName, igroup.IS_SPECIAL isSpecial," +
-            " CASE igroup.IS_SPECIAL WHEN 0 THEN '普通商品' WHEN 1 THEN '特卖商品' WHEN 2 THEN '员购商品' WHEN 3 THEN '半马商品' ELSE '' END isSpecialStr," +
-            " igroup.id itemGroupID," +
-            " igroup.ITEM_GROUP_NAME itemGroupName," +
-            " item.id itemID," +
-            " item.ITEM_NAME itemName," +
-            " item.UPC_CODE upcCode," +
-            " item.ERP_CODE erpCode," +
-            " item.integral integral," +
-            " stock.stock stock," +
-            " item.LIST_PRICE listPrice," +
-            " item.YY_PRICE yyPrice" +
-            " from item as item, item_group as igroup, item_stock as stock " +
-            " where item.ITEM_GROUP_ID = igroup.id and item.id = stock.ITEM_ID " +
-            " and item.IS_DEL=0 and igroup.IS_DEL=0 and stock.IS_DEL=0 ) as itemgroup ";
-            //" LEFT JOIN (SELECT * FROM item_group_shop_ref WHERE IS_DEL=0) AS shop ON itemgroup.itemGroupID=shop.ITEM_GROUP_ID ";
+//    private String itemGroupReportSQL = "select itemgroup.* from (select igroup.brand brandName, igroup.IS_SPECIAL isSpecial," +
+//            " CASE igroup.IS_SPECIAL WHEN 0 THEN '普通商品' WHEN 1 THEN '特卖商品' WHEN 2 THEN '员购商品' WHEN 3 THEN '半马商品' ELSE '' END isSpecialStr," +
+//            " igroup.id itemGroupID," +
+//            " igroup.ITEM_GROUP_NAME itemGroupName," +
+//            " item.id itemID," +
+//            " item.ITEM_NAME itemName," +
+//            " item.UPC_CODE upcCode," +
+//            " item.ERP_CODE erpCode," +
+//            " item.integral integral," +
+//            " stock.stock stock," +
+//            " item.LIST_PRICE listPrice," +
+//            " item.YY_PRICE yyPrice" +
+//            " from item as item, item_group as igroup, item_stock as stock " +
+//            " where item.ITEM_GROUP_ID = igroup.id and item.id = stock.ITEM_ID " +
+//            " and item.IS_DEL=0 and igroup.IS_DEL=0 and stock.IS_DEL=0 ) as itemgroup ";
 
+    private String itemGroupReportSQL = "select titem.*,tstock.*,tgroup.* from (\n" +
+            "select \n" +
+            "id itemID, \n" +
+            "ITEM_GROUP_ID itemGroupID,\n" +
+            "ITEM_NAME itemName, \n" +
+            "UPC_CODE upcCode, \n" +
+            "ERP_CODE erpCode, \n" +
+            "integral integral, \n" +
+            "LIST_PRICE listPrice, \n" +
+            "YY_PRICE yyPrice \n" +
+            "from item where IS_DEL=0 ) as titem \n" +
+            "LEFT JOIN (SELECT stock,ITEM_ID FROM (SELECT * FROM item_stock where IS_DEL=0 ORDER BY CREATED_DATE DESC) AS S GROUP BY ITEM_ID) AS tstock ON titem.itemID = tstock.ITEM_ID\n" +
+            "LEFT JOIN (SELECT \n" +
+            "brand brandName, \n" +
+            "IS_SPECIAL isSpecial, \n" +
+            "CASE IS_SPECIAL WHEN 0 THEN '普通商品' WHEN 1 THEN '特卖商品' WHEN 2 THEN '员购商品' WHEN 3 THEN '半马商品' ELSE '' END isSpecialStr, \n" +
+            "id groupid, \n" +
+            "ITEM_GROUP_NAME itemGroupName FROM item_group WHERE IS_DEL=0) AS tgroup ON titem.itemGroupID = tgroup.groupid ";
 
     @Autowired
     private EntityManager entityManager;
@@ -56,25 +73,25 @@ public class ItemGroupReportService {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         StringBuilder sb = new StringBuilder();
         if (id != null) {
-            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.itemGroupID = :itemGroupID");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemGroupID = :itemGroupID");
         }
         if (StringUtils.hasText(itemGroupName)) {
-            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.itemGroupName like :itemGroupName");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemGroupName like :itemGroupName");
         }
         if (shopIdPmt != null) {
             //and itemGroupID in (select ITEM_GROUP_ID from item_group_shop_ref where SHOP_ID in (1818))
             //sb.append((sb.length() > 0 ? " and " : "") + " shop.SHOP_ID in :shopIdPmt");
-            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.itemGroupID in (select ITEM_GROUP_ID from item_group_shop_ref where SHOP_ID in :shopIdPmt)");
+            sb.append((sb.length() > 0 ? " and " : "") + " itemGroupID in (select ITEM_GROUP_ID from item_group_shop_ref where SHOP_ID in :shopIdPmt)");
         }
         if (StringUtils.hasText(brand)) {
-            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.brandName like :brandName");
+            sb.append((sb.length() > 0 ? " and " : "") + " brandName like :brandName");
         }
         if (isSpecial != null) {
-            sb.append((sb.length() > 0 ? " and " : "") + " itemgroup.isSpecial = :isSpecial");
+            sb.append((sb.length() > 0 ? " and " : "") + " isSpecial = :isSpecial");
         }
         if (sb.length() > 0) sb.insert(0, " where ");
         sb.insert(0, itemGroupReportSQL);
-        sb.append(" order by itemGroupID desc");
+        sb.append(" order by itemID desc ");
         List<ItemReportDto> itemReportlist = new ArrayList();
         try {
             Query query = entityManager.createNativeQuery(sb.toString());
