@@ -1,0 +1,18 @@
+machine:
+  services:
+    - docker
+  java:
+    version: oraclejdk8
+
+dependencies:
+  override:
+    - docker info
+
+deployment:
+  hub:
+    branch: master
+    commands:
+      - mvn package && cp -R target/*.jar $CIRCLE_ARTIFACTS
+      - docker build -t "spike234/yysports_item_service:$CIRCLE_BUILD_NUM" .
+      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+      - docker push "spike234/yysports_item_service:$CIRCLE_BUILD_NUM"
